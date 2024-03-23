@@ -1,66 +1,63 @@
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## Laravel 11 Code Challenge
 
-## About Laravel
+This is a code challenge that I solved during one of the tech interviews. I think it's an interesting one so I'm sharing it with you. If you are a company you can test your candidates with this task and hope they don't find this repository. :)
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+#### Code Challenge Requirements
+1. Use PHP 8.2+,  Laravel 10 or 11 + Sail (Postgres as database)
+2. Use sanctum authentication
+3. Use backend as API (inertia can not be used)
+4. Products seeder which creates 20 random products (price is random, but between 3 and 5 euros)
+5. All the necessary order info is stored in database (including order total)
+6. Upon order creation, validate that minimum order amount has to be at least 15 eur.
+7. Order is created with status "pending" initially
+8. Create a ProcessOrder job that dispatches an email to the admin (address stored in config) and changes the order status to processed. Email content does not matter, can be just a plain text. Dispatch the job with 3 min delay after order creation.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+#### Solution
+You will find all the necessary routes in routes/api.php. From there you can follow the code.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+1. Rename .env.example to .env
+2. Edit ADMIN_EMAIl in .env and set it to your email address. MAIL_MAILER=log so you will see the email content in storage/logs/laravel.log. If you want you can send an actual email.
+3. Run `composer install`
+4. Run `./vendor/bin/sail up`
+5. If necessary edit Postgres credentials in .env
+6. Create Postgres database
+7. Enter sail bash via `./vendor/bin/sail bash` and run `php artisan migrate` and then `php artisan db:seed`
+8. You are good to go
 
-## Learning Laravel
+You can use Postman or other API tool to make API requests. Use route /api/register to register a user and obtain access token. Fields email and password are mandatory, field name is optional. Use /api/login to log in a user and get a new access token. /api/logout logs out the user and removes all access tokens. /api/orders is the endpoint for creating an order. Check out screenshots to see the JSON format of the data you need to send to each route.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+If you find it difficult to run the project with Sail due to apache2 running, docker or whatever you can do the project in regular Laravel project installed via composer. However, the requirements were to be done with Sail hence Sail was used.
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+#### Screenshots
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Register user
+<img src="https://i.imgur.com/7hMOT6v.jpeg" />
 
-## Laravel Sponsors
+Table products
+<img src="https://i.imgur.com/9WfeEGn.jpeg" />
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Set the necessary headers before sending requests to /api/orders
+<img src="https://i.imgur.com/1ikx1Qp.jpeg" />
 
-### Premium Partners
+If order is less than 15 euros
+<img src="https://i.imgur.com/U4yygiC.jpeg" />
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+Successful order
+<img src="https://i.imgur.com/MinUwXY.jpeg" />
 
-## Contributing
+Order status is pending upon creation
+<img src="https://i.imgur.com/hAqlEby.jpeg" />
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Table order_product
+<img src="https://i.imgur.com/SLEvFgb.jpeg" />
 
-## Code of Conduct
+Job created after order creation 
+<img src="https://i.imgur.com/XpoHFAV.jpeg" />
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Inside sail bash run `php artisan queue:work` to execute the job. Check storage/logs/laravel.log to see the email assuming you use MAIL_MAILER=log in .env
+<img src="https://i.imgur.com/HStqGr0.jpeg" />
 
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+The order's status after job execution is set to processed
+<img src="https://i.imgur.com/MU1EVph.jpeg" />
